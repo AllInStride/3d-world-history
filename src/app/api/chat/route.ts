@@ -5,9 +5,9 @@ import * as db from '@/lib/db';
 import { isDevelopmentMode } from '@/lib/local-db/local-auth';
 import { saveChatMessages } from '@/lib/db';
 
-// Vercel allows up to 900s (15 minutes) on Pro plan
+// Vercel Pro plan allows up to 800s (13.3 minutes)
 // For longer tasks, we need to use polling pattern
-export const maxDuration = 900;
+export const maxDuration = 800;
 
 // DeepResearch API configuration
 const DEEPRESEARCH_API_URL = 'https://api.valyu.ai/v1/deepresearch';
