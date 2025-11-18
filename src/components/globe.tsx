@@ -225,26 +225,26 @@ export const Globe = forwardRef<GlobeRef, GlobeProps>(function Globe({ onLocatio
             let selectedFeature = data.features[0];
 
             // Zoom level guidelines:
-            // < 3: World view - prefer country
-            // 3-5: Continental view - prefer country or region
-            // 5-8: Country view - prefer region or place
-            // > 8: City view - prefer place or locality
+            // < 5: World/Continental view - ALWAYS prefer country
+            // 5-7: Country view - prefer country or large region
+            // 7-10: Regional view - prefer region or place
+            // > 10: City view - prefer place or locality
 
-            if (zoom < 3) {
-              // Very zoomed out - prefer country
+            if (zoom < 5) {
+              // Zoomed out - ALWAYS prefer country
               selectedFeature = data.features.find((f: any) => f.place_type?.includes('country')) || data.features[0];
-            } else if (zoom < 5) {
-              // Zoomed out - prefer country or region
+            } else if (zoom < 7) {
+              // Medium zoom - prefer country or large region
               selectedFeature = data.features.find((f: any) =>
                 f.place_type?.includes('country') || f.place_type?.includes('region')
               ) || data.features[0];
-            } else if (zoom < 8) {
-              // Medium zoom - prefer region or place
+            } else if (zoom < 10) {
+              // Zoomed in - prefer region or place
               selectedFeature = data.features.find((f: any) =>
                 f.place_type?.includes('region') || f.place_type?.includes('place')
               ) || data.features[0];
             }
-            // Else: use most specific (default first feature)
+            // Else: use most specific (default first feature) for very zoomed in views
 
             const locationName = selectedFeature.place_name || selectedFeature.text || `Location (${lat.toFixed(2)}, ${lng.toFixed(2)})`;
 

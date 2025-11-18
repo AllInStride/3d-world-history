@@ -1,6 +1,9 @@
 // Polling endpoint for long-running research tasks
 // This endpoint can be called repeatedly from the client to check task status
 
+import * as db from '@/lib/db';
+import { isDevelopmentMode } from '@/lib/local-db/local-auth';
+
 const DEEPRESEARCH_API_URL = 'https://api.valyu.ai/v1/deepresearch';
 const DEEPRESEARCH_API_KEY = process.env.VALYU_API_KEY;
 
@@ -18,6 +21,8 @@ export async function GET(req: Request) {
       );
     }
 
+    const isDevelopment = isDevelopmentMode();
+
     // Fetch task status from DeepResearch API
     const statusResponse = await fetch(
       `${DEEPRESEARCH_API_URL}/tasks/${taskId}/status`,
@@ -33,6 +38,30 @@ export async function GET(req: Request) {
     }
 
     const statusData = await statusResponse.json();
+
+    // Update database status based on DeepResearch API status
+    if (!isDevelopment) {
+      try {
+        if (statusData.status === 'running') {
+          await db.updateResearchTaskByDeepResearchId(taskId, {
+            status: 'running',
+          });
+        } else if (statusData.status === 'completed') {
+          await db.updateResearchTaskByDeepResearchId(taskId, {
+            status: 'completed',
+            completed_at: new Date(),
+          });
+        } else if (statusData.status === 'failed') {
+          await db.updateResearchTaskByDeepResearchId(taskId, {
+            status: 'failed',
+            completed_at: new Date(),
+          });
+        }
+      } catch (error) {
+        console.error('[Poll API] Failed to update database status:', error);
+        // Don't fail the request if database update fails
+      }
+    }
 
     return new Response(
       JSON.stringify(statusData),

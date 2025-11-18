@@ -241,7 +241,8 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
                     break;
                   case 'content':
                     setContent(data.content || '');
-                    setStatus('completed');
+                    // Don't set status to completed yet - wait for 'done' event
+                    // This ensures all data (sources, images) are received before showing completed state
                     break;
                   case 'sources':
                     setSources(data.sources || []);
@@ -271,7 +272,7 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
     };
 
     runResearch();
-  }, [location]);
+  }, [location, initialTaskId]); // Add initialTaskId to deps so it doesn't re-run when loading from history
 
   // Client-side polling effect for long-running tasks
   useEffect(() => {
@@ -565,10 +566,12 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
                           </motion.div>
                         );
                       } else if (item.type === 'tool-result') {
-                        // Extract sources from the result
-                        const sources = item.output?.value?.sources || [];
+                        // Extract sources from the result - try multiple possible structures
+                        const sources = item.output?.value?.sources || item.output?.sources || [];
+                        const resultText = item.output?.value?.text || item.output?.text || '';
+                        const hasContent = sources.length > 0 || resultText;
 
-                        if (sources.length === 0) return null;
+                        if (!hasContent) return null;
 
                         return (
                           <motion.div
@@ -585,35 +588,42 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
                               <div className="flex items-center gap-1.5">
                                 <CheckCircle2 className="h-3 w-3 text-green-600 dark:text-green-400" />
                                 <div className="text-[10px] font-medium text-green-700 dark:text-green-400 uppercase tracking-wide">
-                                  {sources.length} {sources.length === 1 ? 'Source' : 'Sources'} Found
+                                  {sources.length > 0 ? `${sources.length} ${sources.length === 1 ? 'Source' : 'Sources'} Found` : 'Result'}
                                 </div>
                               </div>
-                              <div className="space-y-1.5">
-                                {sources.slice(0, 3).map((source: any, idx: number) => (
-                                  <a
-                                    key={idx}
-                                    href={source.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="group flex items-start gap-2 p-2.5 bg-muted/30 rounded-lg border hover:border-primary transition-colors"
-                                  >
-                                    {source.url && (
-                                      <Favicon url={source.url} className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                                    )}
-                                    <div className="flex-1 min-w-0">
-                                      <div className="text-xs font-medium line-clamp-1 group-hover:text-primary transition-colors">
-                                        {source.title || 'Untitled'}
-                                      </div>
-                                      {source.snippet && (
-                                        <div className="text-[10px] text-muted-foreground line-clamp-2 mt-0.5">
-                                          {source.snippet}
-                                        </div>
+                              {sources.length > 0 && (
+                                <div className="space-y-1.5">
+                                  {sources.slice(0, 3).map((source: any, idx: number) => (
+                                    <a
+                                      key={idx}
+                                      href={source.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="group flex items-start gap-2 p-2.5 bg-muted/30 rounded-lg border hover:border-primary transition-colors"
+                                    >
+                                      {source.url && (
+                                        <Favicon url={source.url} className="w-4 h-4 flex-shrink-0 mt-0.5" />
                                       )}
-                                    </div>
-                                    <ExternalLink className="h-3 w-3 text-muted-foreground flex-shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                      <div className="flex-1 min-w-0">
+                                        <div className="text-xs font-medium line-clamp-1 group-hover:text-primary transition-colors">
+                                          {source.title || 'Untitled'}
+                                        </div>
+                                        {source.snippet && (
+                                          <div className="text-[10px] text-muted-foreground line-clamp-2 mt-0.5">
+                                            {source.snippet}
+                                          </div>
+                                        )}
+                                      </div>
+                                      <ExternalLink className="h-3 w-3 text-muted-foreground flex-shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" />
                                   </a>
                                 ))}
                               </div>
+                              )}
+                              {resultText && (
+                                <div className="text-xs text-muted-foreground p-2.5 bg-muted/20 rounded-lg border border-border/50 max-h-32 overflow-y-auto">
+                                  <pre className="whitespace-pre-wrap font-mono text-[10px]">{resultText}</pre>
+                                </div>
+                              )}
                             </div>
                           </motion.div>
                         );
@@ -871,8 +881,11 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
                 </div>
               );
             } else if (item.type === 'tool-result') {
-              const sources = item.output?.value?.sources || [];
-              if (sources.length === 0) return null;
+              const sources = item.output?.value?.sources || item.output?.sources || [];
+              const resultText = item.output?.value?.text || item.output?.text || '';
+              const hasContent = sources.length > 0 || resultText;
+
+              if (!hasContent) return null;
 
               return (
                 <div
@@ -883,12 +896,12 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
                     <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
                       <CornerDownRight className="h-3 w-3" />
                       <span className="text-[10px] font-medium uppercase tracking-wide">
-                        {sources.length} {sources.length === 1 ? 'Source' : 'Sources'} Found
+                        {sources.length > 0 ? `${sources.length} ${sources.length === 1 ? 'Source' : 'Sources'} Found` : 'Result'}
                       </span>
                     </div>
                   </div>
                   <div className="p-3 space-y-2">
-                    {sources.slice(0, 3).map((source: any, sourceIdx: number) => (
+                    {sources.length > 0 && sources.slice(0, 3).map((source: any, sourceIdx: number) => (
                       <a
                         key={sourceIdx}
                         href={source.url}
@@ -915,6 +928,11 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
                     {sources.length > 3 && (
                       <div className="text-[10px] text-center text-muted-foreground py-1">
                         +{sources.length - 3} more sources
+                      </div>
+                    )}
+                    {resultText && (
+                      <div className="text-xs text-muted-foreground p-2.5 bg-muted/20 rounded-lg border border-border/50 max-h-32 overflow-y-auto">
+                        <pre className="whitespace-pre-wrap font-mono text-[10px]">{resultText}</pre>
                       </div>
                     )}
                   </div>

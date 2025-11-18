@@ -117,30 +117,52 @@ function HomeContent() {
   useEffect(() => {
     const researchId = searchParams.get('research');
     if (researchId && !selectedLocation) {
-      // Set a placeholder location so the interface opens
-      // The interface will load the actual research data from the task ID
-      setSelectedLocation({
-        name: 'Loading research...',
-        lat: 0,
-        lng: 0,
-      });
-      console.log('Loading research from URL:', researchId);
+      // Fetch task data to get the actual location
+      const fetchTaskData = async () => {
+        try {
+          const response = await fetch('/api/research/tasks');
+          const { tasks } = await response.json();
+          const task = tasks.find((t: any) => t.deepresearchId === researchId);
+
+          if (task) {
+            setSelectedLocation({
+              name: task.locationName,
+              lat: task.locationLat,
+              lng: task.locationLng,
+            });
+            console.log('Loading research from URL:', researchId, task.locationName);
+          } else {
+            // Fallback if task not found
+            setSelectedLocation({
+              name: 'Loading research...',
+              lat: 0,
+              lng: 0,
+            });
+            console.log('Loading research from URL (task not found):', researchId);
+          }
+        } catch (error) {
+          console.error('Failed to fetch task data:', error);
+          // Fallback on error
+          setSelectedLocation({
+            name: 'Loading research...',
+            lat: 0,
+            lng: 0,
+          });
+        }
+      };
+
+      fetchTaskData();
     }
   }, [searchParams]); // Remove selectedLocation from deps to prevent re-opening
 
-  // Handle load-research event from sidebar
+  // Handle show-auth-modal event from sidebar
   useEffect(() => {
-    const handleLoadResearch = (event: any) => {
-      const task = event.detail;
-      setSelectedLocation({
-        name: task.locationName,
-        lat: task.locationLat,
-        lng: task.locationLng,
-      });
+    const handleShowAuthModal = () => {
+      setShowAuthModal(true);
     };
 
-    window.addEventListener('load-research', handleLoadResearch);
-    return () => window.removeEventListener('load-research', handleLoadResearch);
+    window.addEventListener('show-auth-modal', handleShowAuthModal);
+    return () => window.removeEventListener('show-auth-modal', handleShowAuthModal);
   }, []);
 
   const handleFeelingLucky = useCallback(() => {

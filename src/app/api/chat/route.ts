@@ -256,6 +256,7 @@ Please be thorough and well-researched, citing historical sources where possible
           // Poll for up to 14 minutes within this connection (leaving 1 min buffer for Vercel limit)
           const maxPolls = 840; // 14 minutes at 1 second intervals
           let lastMessagesLength = 0;
+          let hasSetRunning = false; // Track if we've updated status to running
 
           while (!completed && pollCount < maxPolls) {
             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -279,6 +280,19 @@ Please be thorough and well-researched, citing historical sources where possible
 
             // Send progress updates
             if (statusData.status === 'running') {
+              // Update database status to running on first detection
+              if (!isDevelopment && !hasSetRunning) {
+                hasSetRunning = true;
+                try {
+                  await db.updateResearchTaskByDeepResearchId(taskId, {
+                    status: 'running',
+                  });
+                  console.log("[Chat API] Research task status updated to running");
+                } catch (error) {
+                  console.error("[Chat API] Failed to update research task status to running:", error);
+                }
+              }
+
               controller.enqueue(
                 encoder.encode(
                   `data: ${JSON.stringify({

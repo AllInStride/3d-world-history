@@ -110,8 +110,8 @@ export function Sidebar({
     params.set('research', task.deepresearchId);
     window.history.pushState({}, '', `?${params.toString()}`);
 
-    // Trigger a custom event to notify the page to load the research
-    window.dispatchEvent(new CustomEvent('load-research', { detail: task }));
+    // Trigger popstate event so URL change is detected
+    window.dispatchEvent(new PopStateEvent('popstate'));
 
     setShowHistory(false);
   }, []);
