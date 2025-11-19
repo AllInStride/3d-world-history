@@ -864,7 +864,7 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
               </div>
             )}
 
-            {status === 'running' && (
+            {(status === 'running' || status === 'completed') && (
               <div className="space-y-4">
                 {/* Location Title */}
                 <div className="text-center py-6">
@@ -916,7 +916,7 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
                 )}
 
                 {/* Activity Feed - Show during running and completed */}
-                {timeline.length > 0 && (status === 'running' || status === 'completed') && (
+                {timeline.length > 0 && (
                   <div className="space-y-4" key={`timeline-${messages.length}-${timeline.length}`}>
                     <div className="text-xs font-light text-muted-foreground/60 uppercase tracking-wider">
                       Research Trace
@@ -944,23 +944,6 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
                 transition={{ duration: 0.3 }}
                 className="space-y-4"
               >
-                {/* Hero Images for Completed Research */}
-                {status === 'completed' && heroImages.length > 0 && (
-                  <div>
-                    <div className="text-center mb-6">
-                      <h1 className="text-5xl font-light tracking-tight font-serif italic text-foreground/95">
-                        {displayLocation.name}
-                      </h1>
-                      {displayLocation.lat !== 0 && displayLocation.lng !== 0 && (
-                        <p className="text-sm text-muted-foreground/70 mt-2 font-light tracking-wide">
-                          {displayLocation.lat.toFixed(4)}, {displayLocation.lng.toFixed(4)}
-                        </p>
-                      )}
-                    </div>
-                    <PhotoGallery images={heroImages} />
-                  </div>
-                )}
-
                 {status === 'completed' && (
                   <>
                     <motion.div
