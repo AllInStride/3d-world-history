@@ -188,7 +188,7 @@ export function SignupPrompt({ open, onClose, onSignUp, rateLimitContext }: Sign
                     {(context === 'free' || context === 'subscription') && 'View Plans'}
                     {!context && 'Create Free Account'}
                   </Button>
-                  {context === 'anonymous' && (
+                  {!context && (
                     <Button
                       onClick={onClose}
                       variant="ghost"
