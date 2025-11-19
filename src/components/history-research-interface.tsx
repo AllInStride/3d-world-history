@@ -412,13 +412,28 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
         // Only update state if we have actual data, otherwise keep existing data
         // This prevents showing empty content when switching from running to completed
 
+        // Set content from output field first (this is the final report)
+        if (statusData.output) {
+          setContent(statusData.output);
+        }
+
         if (statusData.messages && Array.isArray(statusData.messages) && statusData.messages.length > 0) {
           setMessages([...statusData.messages]);
           setMessagesVersion(v => v + 1);
-        }
 
-        if (statusData.output) {
-          setContent(statusData.output);
+          // Only extract content from messages if output wasn't provided
+          if (!statusData.output) {
+            const lastMessage = statusData.messages[statusData.messages.length - 1];
+            if (lastMessage?.role === 'assistant' && Array.isArray(lastMessage.content)) {
+              const textContent = lastMessage.content
+                .filter((item: any) => item.type === 'text')
+                .map((item: any) => item.text)
+                .join('\n\n');
+              if (textContent) {
+                setContent(textContent);
+              }
+            }
+          }
         }
 
         if (statusData.sources && Array.isArray(statusData.sources) && statusData.sources.length > 0) {
@@ -969,21 +984,9 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
                         </Button>
                       )}
                     </motion.div>
-                    {content ? (
+                    {content && (
                       <div className="prose prose-sm dark:prose-invert max-w-none bg-background/60 backdrop-blur-sm rounded-lg p-6 border shadow-sm prose-headings:font-semibold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:leading-relaxed prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-code:text-sm prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-muted prose-pre:border">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
-                      </div>
-                    ) : (
-                      <div className="bg-background/60 backdrop-blur-sm rounded-lg p-6 border shadow-sm space-y-3">
-                        <Skeleton className="h-8 w-3/4" />
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-5/6" />
-                        <div className="pt-2" />
-                        <Skeleton className="h-6 w-2/3" />
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-4/5" />
                       </div>
                     )}
                   </>
