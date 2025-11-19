@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, Loader2, MapPin, ExternalLink, FileText, Lightbulb, CornerDownRight, Globe2, CheckCircle2, Brain, Clock, Sparkles, Share2, Check, Copy } from 'lucide-react';
+import { X, Loader2, MapPin, ExternalLink, FileText, Lightbulb, CornerDownRight, Globe2, CheckCircle2, Brain, Clock, Sparkles, Share2, Check, Copy, Compass } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Favicon } from '@/components/ui/favicon';
 import { ReasoningDialog } from '@/components/reasoning-dialog';
@@ -65,7 +66,7 @@ interface HistoryResearchInterfaceProps {
 
 // Reusable timeline item renderer
 const TimelineItem = ({ item, idx, timeline, animated = true }: { item: any; idx: number; timeline: any[]; animated?: boolean }) => {
-  const ItemWrapper = animated ? motion.div : 'div';
+  const ItemWrapper: any = animated ? motion.div : 'div';
   const itemProps = animated ? {
     initial: { opacity: 0, y: 10 },
     animate: { opacity: 1, y: 0 },
@@ -81,16 +82,16 @@ const TimelineItem = ({ item, idx, timeline, animated = true }: { item: any; idx
       <ItemWrapper key={`text-${idx}`} {...itemProps}>
         <div className={`overflow-hidden rounded-lg border backdrop-blur-sm ${
           isReasoning
-            ? 'border-amber-500/40 bg-amber-500/10'
-            : 'border-blue-500/40 bg-blue-500/10'
+            ? 'border-border/40 bg-muted/30'
+            : 'border-border/40 bg-background/60'
         }`}>
           <div className={`px-3 py-2 border-b ${
             isReasoning
-              ? 'bg-amber-500/10 border-amber-500/20'
-              : 'bg-blue-500/10 border-blue-500/20'
+              ? 'bg-muted/20 border-border/30'
+              : 'bg-muted/10 border-border/30'
           }`}>
             <div className={`flex items-center gap-2 ${
-              isReasoning ? 'text-amber-700' : 'text-blue-700'
+              isReasoning ? 'text-foreground/70' : 'text-foreground/70'
             }`}>
               {isReasoning ? (
                 <Lightbulb className="h-3.5 w-3.5" />
@@ -127,18 +128,18 @@ const TimelineItem = ({ item, idx, timeline, animated = true }: { item: any; idx
       <ItemWrapper key={`tool-call-${idx}-${item.toolCallId}`} {...itemProps}>
         <div className={`overflow-hidden rounded-lg border backdrop-blur-sm ${
           hasResult
-            ? 'border-green-500/40 bg-green-500/10'
-            : 'border-blue-500/40 bg-blue-500/10'
+            ? 'border-border/50 bg-background/70'
+            : 'border-border/40 bg-muted/20'
         }`}>
           <div className={`px-3 py-2 border-b ${
             hasResult
-              ? 'bg-green-500/10 border-green-500/20'
-              : 'bg-blue-500/10 border-blue-500/20'
+              ? 'bg-muted/20 border-border/40'
+              : 'bg-muted/10 border-border/30'
           }`}>
             <div className={`flex items-center gap-2 ${
               hasResult
-                ? 'text-green-700'
-                : 'text-blue-700'
+                ? 'text-foreground/80'
+                : 'text-foreground/60'
             }`}>
               {hasResult ? (
                 <CheckCircle2 className="h-3.5 w-3.5" />
@@ -168,8 +169,8 @@ const TimelineItem = ({ item, idx, timeline, animated = true }: { item: any; idx
     return (
       <ItemWrapper
         key={`tool-result-${idx}-${item.toolCallId}`}
-        {...itemProps}
         className="flex gap-2.5 pl-1"
+        {...itemProps}
       >
         <div className="flex items-start pt-1">
           <CornerDownRight className="h-3.5 w-3.5 text-green-600/40 flex-shrink-0" />
@@ -238,6 +239,8 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [heroImages, setHeroImages] = useState<string[]>([]);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   const handleShare = async () => {
     if (!user || !taskId) return;
@@ -280,6 +283,45 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  // Generate hero images for location
+  const generateHeroImage = async () => {
+    if (!location || isGeneratingImage) return;
+
+    setIsGeneratingImage(true);
+    try {
+      const response = await fetch('/api/history/select-location-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          locationName: location.name,
+          historicalPeriod: customInstructions?.includes('ancient') ? 'ancient' :
+                           customInstructions?.includes('medieval') ? 'medieval' :
+                           customInstructions?.includes('war') ? 'conflict' : undefined,
+          preset: customInstructions,
+        }),
+      });
+
+      const { images, reasoning } = await response.json();
+
+      if (images && images.length > 0) {
+        setHeroImages(images);
+        console.log('[HeroImage] Selected', images.length, 'images');
+
+        if (reasoning) {
+          console.log('[HeroImage] Selection reasoning:', reasoning);
+        }
+      } else {
+        console.log('[HeroImage] No images available');
+        setHeroImages([]);
+      }
+    } catch (error) {
+      console.error('[HeroImage] Failed to generate:', error);
+      setHeroImages([]);
+    } finally {
+      setIsGeneratingImage(false);
     }
   };
 
@@ -372,10 +414,28 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
     }
   }, [initialTaskId, taskId]);
 
+  // Track if research has been initiated to prevent duplicate runs
+  const researchInitiatedRef = useRef(false);
+  const previousLocationRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (!location || initialTaskId) return; // Skip if loading existing research
 
+    // Check if this is a new location (reset the ref if location changed)
+    const locationKey = `${location.name}_${location.lat}_${location.lng}`;
+    if (previousLocationRef.current !== locationKey) {
+      previousLocationRef.current = locationKey;
+      researchInitiatedRef.current = false;
+    }
+
+    // Prevent duplicate research runs for the same location
+    if (researchInitiatedRef.current) {
+      console.log('[Research] Already initiated for this location, skipping duplicate run');
+      return;
+    }
+
     const runResearch = async () => {
+      researchInitiatedRef.current = true;
       setStatus('queued');
       setContent('');
       setSources([]);
@@ -460,24 +520,27 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
                       setMessages((prev) => {
                         const newMessages = [...prev];
 
-                        // Find or create the last assistant message
-                        let lastAssistantIndex = -1;
+                        // Get the role from the message (assistant or tool)
+                        const messageRole = data.message_role || 'assistant';
+
+                        // Find or create the last message with matching role
+                        let lastMessageIndex = -1;
                         for (let i = newMessages.length - 1; i >= 0; i--) {
-                          if (newMessages[i].role === 'assistant') {
-                            lastAssistantIndex = i;
+                          if (newMessages[i].role === messageRole) {
+                            lastMessageIndex = i;
                             break;
                           }
                         }
 
-                        if (lastAssistantIndex === -1) {
-                          // Create new assistant message
+                        if (lastMessageIndex === -1) {
+                          // Create new message with the appropriate role
                           newMessages.push({
-                            role: 'assistant',
+                            role: messageRole as 'assistant' | 'tool',
                             content: [data.data],
                           });
                         } else {
-                          // Append to existing assistant message
-                          const existing = newMessages[lastAssistantIndex];
+                          // Append to existing message
+                          const existing = newMessages[lastMessageIndex];
                           if (Array.isArray(existing.content)) {
                             existing.content = [...existing.content, data.data];
                           }
@@ -485,6 +548,7 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
 
                         return newMessages;
                       });
+                      setMessagesVersion(v => v + 1);
                     }
                     break;
                   case 'content':
@@ -567,6 +631,16 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
     };
   }, [shouldContinuePolling, taskId]);
 
+  // Generate hero images when research starts running (only once)
+  const [imageGenerationAttempted, setImageGenerationAttempted] = useState(false);
+
+  useEffect(() => {
+    if (status === 'running' && heroImages.length === 0 && !isGeneratingImage && !imageGenerationAttempted) {
+      setImageGenerationAttempted(true);
+      generateHeroImage();
+    }
+  }, [status, heroImages.length, isGeneratingImage, imageGenerationAttempted]);
+
   // Build timeline from messages - interleave tool-calls with their results
   // Use messagesVersion counter to force recalculation on every update
   const timeline = useMemo(() => {
@@ -593,7 +667,9 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
       }
     });
 
-    // Second pass: build timeline with tool-results immediately after tool-calls
+    // Second pass: build timeline with tool-calls, tool-results, and text
+    const seenTexts = new Set<string>();
+
     messages.forEach((message) => {
       if (!message || !message.role) return;
 
@@ -603,12 +679,17 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
 
           if (item.type === 'text' || item.type === 'reasoning') {
             if (item.text) {
-              items.push({
-                type: 'text' as const,
-                text: item.text,
-                contentType: item.type,
-                messageIndex,
-              });
+              // Deduplicate text items by content
+              const textKey = `${item.type}:${item.text}`;
+              if (!seenTexts.has(textKey)) {
+                seenTexts.add(textKey);
+                items.push({
+                  type: 'text' as const,
+                  text: item.text,
+                  contentType: item.type,
+                  messageIndex,
+                });
+              }
             }
           } else if (item.type === 'tool-call') {
             if (item.toolCallId && item.toolName) {
@@ -626,6 +707,30 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
               if (result) {
                 items.push(result);
               }
+            }
+          }
+        });
+        messageIndex++;
+      } else if (message.role === 'tool' && Array.isArray(message.content)) {
+        // Also process tool messages to show standalone tool results
+        message.content.forEach((item: any) => {
+          if (!item || !item.type) return;
+
+          if (item.type === 'tool-result' && item.toolCallId) {
+            // Only add if not already added via assistant message tool-call
+            const alreadyAdded = items.some(
+              (existingItem: any) =>
+                existingItem.type === 'tool-result' &&
+                existingItem.toolCallId === item.toolCallId
+            );
+
+            if (!alreadyAdded) {
+              items.push({
+                type: 'tool-result' as const,
+                toolCallId: item.toolCallId,
+                output: item.output,
+                messageIndex,
+              });
             }
           }
         });
@@ -651,9 +756,9 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
   if (!displayLocation) return null;
 
   return (
-    <div className="fixed inset-0 bg-background/95 backdrop-blur-sm z-50 flex">
+    <div className="fixed inset-0 bg-background/70 backdrop-blur-md z-50 flex">
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 h-16 border-b border-border/30 bg-background/50 backdrop-blur-xl flex items-center justify-between px-6 z-10">
+      <div className="absolute top-0 left-0 right-0 h-16 border-b border-border/30 bg-background/30 backdrop-blur-xl flex items-center justify-between px-6 z-10">
         <div className="flex items-center gap-3">
           <MapPin className="h-5 w-5 text-primary" />
           <div>
@@ -712,15 +817,58 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
 
             {status === 'running' && (
               <div className="space-y-4">
-                <div className="flex items-center justify-center py-6">
-                  <div className="text-center w-full max-w-md">
+                {/* Location Title */}
+                <div className="text-center py-6">
+                  <h1 className="text-5xl font-light tracking-tight font-serif italic text-foreground/95">
+                    {displayLocation.name}
+                  </h1>
+                  {displayLocation.lat !== 0 && displayLocation.lng !== 0 && (
+                    <p className="text-sm text-muted-foreground/70 mt-2 font-light tracking-wide">
+                      {displayLocation.lat.toFixed(4)}, {displayLocation.lng.toFixed(4)}
+                    </p>
+                  )}
+                </div>
+
+                {/* Hero Images Grid */}
+                {isGeneratingImage ? (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <Skeleton className="h-48 w-full rounded-lg" />
+                    <Skeleton className="h-48 w-full rounded-lg" />
+                    <Skeleton className="h-48 w-full rounded-lg" />
+                    <Skeleton className="h-48 w-full rounded-lg" />
+                  </div>
+                ) : heroImages.length > 0 ? (
+                  <div className={`grid gap-3 ${
+                    heroImages.length === 1 ? 'grid-cols-1' :
+                    heroImages.length === 2 ? 'grid-cols-2' :
+                    heroImages.length === 3 ? 'grid-cols-3' :
+                    'grid-cols-2 md:grid-cols-4'
+                  }`}>
+                    {heroImages.map((imageUrl, index) => (
+                      <div key={index} className="relative rounded-lg overflow-hidden border border-border/50 shadow-md group">
+                        <div className={`relative w-full ${heroImages.length === 1 ? 'h-64' : 'h-48'}`}>
+                          <img
+                            src={imageUrl}
+                            alt={`${displayLocation.name} - View ${index + 1}`}
+                            className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500"
+                          />
+                          {/* Subtle overlay on hover */}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-center w-full max-w-md space-y-4">
                     <motion.div
                       animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                      transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
                     >
-                      <Sparkles className="h-8 w-8 text-primary mx-auto mb-4" />
+                      <Compass className="h-10 w-10 text-foreground/40 mx-auto" />
                     </motion.div>
-                    <p className="text-sm font-medium mb-2">Researching {displayLocation.name}...</p>
+                    <p className="text-base font-light text-foreground/70">Researching {displayLocation.name}...</p>
                     {shouldContinuePolling && (
                       <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg mb-3">
                         <p className="text-xs text-amber-700">
@@ -749,7 +897,7 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
                 {/* Activity Feed - Show during running and completed */}
                 {timeline.length > 0 && (status === 'running' || status === 'completed') && (
                   <div className="space-y-4" key={`timeline-${messages.length}-${timeline.length}`}>
-                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    <div className="text-xs font-light text-muted-foreground/60 uppercase tracking-wider">
                       Research Trace
                     </div>
                     {timeline.map((item, idx) => (
@@ -768,39 +916,93 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
             )}
 
             {/* Research Content */}
-            {content && (
+            {(content || status === 'completed') && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
                 className="space-y-4"
               >
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3 }}
-                  className="flex items-center justify-between gap-2 text-sm font-semibold text-green-700 bg-green-500/10 rounded-lg px-4 py-3 border border-green-500/20 shadow-sm"
-                >
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5" />
-                    <span>Research Complete</span>
+                {/* Hero Images for Completed Research */}
+                {status === 'completed' && heroImages.length > 0 && (
+                  <div>
+                    <div className="text-center mb-6">
+                      <h1 className="text-5xl font-light tracking-tight font-serif italic text-foreground/95">
+                        {displayLocation.name}
+                      </h1>
+                      {displayLocation.lat !== 0 && displayLocation.lng !== 0 && (
+                        <p className="text-sm text-muted-foreground/70 mt-2 font-light tracking-wide">
+                          {displayLocation.lat.toFixed(4)}, {displayLocation.lng.toFixed(4)}
+                        </p>
+                      )}
+                    </div>
+                    <div className={`grid gap-4 ${
+                      heroImages.length === 1 ? 'grid-cols-1' :
+                      heroImages.length === 2 ? 'grid-cols-2' :
+                      heroImages.length === 3 ? 'grid-cols-3' :
+                      'grid-cols-2 md:grid-cols-4'
+                    }`}>
+                      {heroImages.map((imageUrl, index) => (
+                        <div key={index} className="relative rounded-lg overflow-hidden border border-border/50 shadow-lg group">
+                          <div className={`relative w-full ${heroImages.length === 1 ? 'h-80' : 'h-56'}`}>
+                            <img
+                              src={imageUrl}
+                              alt={`${displayLocation.name} - View ${index + 1}`}
+                              className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500"
+                            />
+                            {/* Subtle overlay on hover */}
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  {status === 'completed' && messages && messages.length > 0 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-7 gap-1.5 bg-background hover:bg-accent border-green-500/30"
-                      onClick={() => setShowReasoningDialog(true)}
+                )}
+
+                {status === 'completed' && (
+                  <>
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3 }}
+                      className="flex items-center justify-between gap-2 text-sm font-semibold text-green-700 bg-green-500/10 rounded-lg px-4 py-3 border border-green-500/20 shadow-sm"
                     >
-                      <Brain className="h-3.5 w-3.5" />
-                      <span className="text-xs">View Reasoning</span>
-                    </Button>
-                  )}
-                </motion.div>
-                <div className="prose prose-sm dark:prose-invert max-w-none bg-background rounded-lg p-6 border shadow-sm prose-headings:font-semibold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:leading-relaxed prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-code:text-sm prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-muted prose-pre:border">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
-                </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-5 w-5" />
+                        <span>Research Complete</span>
+                      </div>
+                      {messages && messages.length > 0 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-7 gap-1.5 bg-background hover:bg-accent border-green-500/30"
+                          onClick={() => setShowReasoningDialog(true)}
+                        >
+                          <Brain className="h-3.5 w-3.5" />
+                          <span className="text-xs">View Reasoning</span>
+                        </Button>
+                      )}
+                    </motion.div>
+                    {content ? (
+                      <div className="prose prose-sm dark:prose-invert max-w-none bg-background/60 backdrop-blur-sm rounded-lg p-6 border shadow-sm prose-headings:font-semibold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:leading-relaxed prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-code:text-sm prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-muted prose-pre:border">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      <div className="bg-background/60 backdrop-blur-sm rounded-lg p-6 border shadow-sm space-y-3">
+                        <Skeleton className="h-8 w-3/4" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-5/6" />
+                        <div className="pt-2" />
+                        <Skeleton className="h-6 w-2/3" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-4/5" />
+                      </div>
+                    )}
+                  </>
+                )}
               </motion.div>
             )}
 
@@ -895,9 +1097,9 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
                       transition={{ duration: 0.3, delay: 0.2 }}
                       className="text-3xl font-bold text-primary mb-1"
                     >
-                      {metrics.searches}
+                      {metrics.wordsRead.toLocaleString()}
                     </motion.p>
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Searches</p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Words Read</p>
                   </div>
                   <div className="text-center">
                     <motion.p
