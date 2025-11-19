@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { X, Sparkles, History, Lock, CreditCard, TrendingUp } from 'lucide-react';
+import { X, Sparkles, History, CreditCard, TrendingUp } from 'lucide-react';
 import { useAuthStore } from '@/lib/stores/use-auth-store';
 import { useSubscription } from '@/hooks/use-subscription';
 

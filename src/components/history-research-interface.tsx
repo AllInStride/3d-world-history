@@ -409,29 +409,33 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
 
         return { completed: false };
       } else if (statusData.status === 'completed') {
-        // Set content from output field (this contains the final markdown report)
+        console.log('[Polling] Task completed, processing data...');
+
+        // Extract content - prioritize output field
+        let extractedContent = '';
         if (statusData.output) {
-          setContent(statusData.output);
+          extractedContent = statusData.output;
+          console.log('[Polling] Got content from output field:', extractedContent.length, 'chars');
+        } else if (statusData.messages && Array.isArray(statusData.messages) && statusData.messages.length > 0) {
+          // Fallback: extract content from last message
+          const lastMessage = statusData.messages[statusData.messages.length - 1];
+          if (lastMessage?.role === 'assistant' && Array.isArray(lastMessage.content)) {
+            extractedContent = lastMessage.content
+              .filter((item: any) => item.type === 'text')
+              .map((item: any) => item.text)
+              .join('\n\n');
+            console.log('[Polling] Got content from messages:', extractedContent.length, 'chars');
+          }
         }
 
-        // Update messages for timeline/reasoning view
+        // Update all state in batch before changing status
+        if (extractedContent) {
+          setContent(extractedContent);
+        }
+
         if (statusData.messages && Array.isArray(statusData.messages) && statusData.messages.length > 0) {
           setMessages([...statusData.messages]);
           setMessagesVersion(v => v + 1);
-
-          // Fallback: extract content from last message if output wasn't provided
-          if (!statusData.output) {
-            const lastMessage = statusData.messages[statusData.messages.length - 1];
-            if (lastMessage?.role === 'assistant' && Array.isArray(lastMessage.content)) {
-              const textContent = lastMessage.content
-                .filter((item: any) => item.type === 'text')
-                .map((item: any) => item.text)
-                .join('\n\n');
-              if (textContent) {
-                setContent(textContent);
-              }
-            }
-          }
         }
 
         if (statusData.sources && Array.isArray(statusData.sources) && statusData.sources.length > 0) {
@@ -442,6 +446,8 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
           setImages(statusData.images);
         }
 
+        // Set status to completed LAST, after all content is ready
+        console.log('[Polling] Setting status to completed with content:', !!extractedContent);
         setStatus('completed');
         return { completed: true };
       } else if (statusData.status === 'failed') {
