@@ -1,12 +1,12 @@
-# History 
+# History
 
-> **Discover the stories behind every place on Earth**
+> Discover the stories behind every place on Earth
 
 An interactive 3D globe that lets you explore the fascinating history of any location on the planet. Born from a love of "doom-scrolling" Google Maps and learning about random islands, untouched places, and interesting geographical areas - History brings deep historical research to your fingertips.
 
 ![History](public/history.png)
 
-##  What is History?
+## What is History?
 
 History is an open-source application that combines:
 - **Interactive 3D Globe** - Navigate a beautiful satellite view of Earth powered by Mapbox GL
@@ -14,21 +14,21 @@ History is an open-source application that combines:
 - **Instant Discovery** - Learn about remote islands, ancient cities, geographical wonders, and historical sites
 
 Perfect for:
--  Geography enthusiasts who love exploring maps
--  Discovering the stories behind remote islands and untouched places
--  Learning about historical events tied to specific locations
--  Understanding the geological and cultural significance of geographical areas
--  Satisfying your curiosity about any place on Earth
+- Geography enthusiasts who love exploring maps
+- Discovering the stories behind remote islands and untouched places
+- Learning about historical events tied to specific locations
+- Understanding the geological and cultural significance of geographical areas
+- Satisfying your curiosity about any place on Earth
 
-##  Why I Built This
+## Why I Built This
 
 I love doom-scrolling Google Maps - clicking on random islands in the Pacific, exploring untouched wilderness areas, finding weird geographical features, and wondering about their stories. But finding detailed historical information about these places meant searching through dozens of sources, Wikipedia rabbit holes, and academic papers.
 
 **History solves this.** Click anywhere on the globe, and within seconds, get a comprehensive research report about that location's history, significance, and stories. It's like having a personal historian who knows about every corner of Earth.
 
-##  Key Features
+## Key Features
 
-###  Interactive Globe
+### Interactive Globe
 - **3D Satellite Visualization** - Stunning Mapbox satellite imagery with globe projection
 - **Smooth Navigation** - Rotate, zoom, and explore with intuitive controls
 - **Auto-Rotation** - The globe gently spins when idle
@@ -36,7 +36,7 @@ I love doom-scrolling Google Maps - clicking on random islands in the Pacific, e
 - **Random Discovery** - "I'm Feeling Lucky" button for random location exploration
 - **Multiple Map Styles** - Satellite, streets, outdoors, and more
 
-###  Deep Research
+### Deep Research
 - **Valyu DeepResearch API** - Powered by advanced AI research capabilities
 - **Comprehensive Analysis** - Historical events, cultural heritage, key figures, and timelines
 - **Source Citations** - Transparent sources with links to references
@@ -44,20 +44,20 @@ I love doom-scrolling Google Maps - clicking on random islands in the Pacific, e
 - **Reasoning Traces** - See how the AI thinks through the research process
 - **Multiple Data Sources** - Aggregates information from historical databases and archives
 
-###  Save & Organize
+### Save & Organize
 - **Research History** - Save and revisit your discoveries (signed-in users)
 - **Location Metadata** - Coordinates, names, and research IDs stored for each query
 - **Sidebar Navigation** - Easy access to past research sessions
 - **Shareable Links** - Share specific research via URL
 
-###  Beautiful UI
+### Beautiful UI
 - **Transparent Overlays** - Research interface that doesn't block the globe
 - **Smooth Animations** - Framer Motion powered transitions
 - **Dark Mode Support** - Beautiful in both light and dark themes
 - **Responsive Design** - Works on desktop, tablet, and mobile
 - **Activity Feed** - Live updates showing research progress
 
-##  Technology Stack
+## Technology Stack
 
 ### Frontend
 - **[Next.js 15](https://nextjs.org)** - React framework with App Router
@@ -68,7 +68,7 @@ I love doom-scrolling Google Maps - clicking on random islands in the Pacific, e
 - **[React Markdown](https://github.com/remarkjs/react-markdown)** - Rendering research reports
 
 ### Backend
-- **[Valyu DeepResearch API](https://valyu.ai)** - AI-powered historical research (the star of the show!)
+- **[Valyu DeepResearch API](https://valyu.ai)** - AI-powered historical research
 - **[Supabase](https://supabase.com)** - Authentication and database (production mode)
 - **[SQLite](https://www.sqlite.org/)** - Local database (development mode)
 - **[Polar](https://polar.sh)** - Subscription billing and monetization
@@ -78,7 +78,7 @@ I love doom-scrolling Google Maps - clicking on random islands in the Pacific, e
 - **[Vercel](https://vercel.com)** - Deployment and hosting
 - **TypeScript** - Type safety throughout the codebase
 
-##  Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -144,9 +144,11 @@ I love doom-scrolling Google Maps - clicking on random islands in the Pacific, e
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
    SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
 
-   # Polar (Optional - for billing)
+   # Polar Billing (Optional)
+   POLAR_ACCESS_TOKEN=polar_your_access_token_here
    POLAR_WEBHOOK_SECRET=whsec_your_webhook_secret_here
-   POLAR_UNLIMITED_PRODUCT_ID=prod_your_product_id_here
+   POLAR_SUBSCRIPTION_PRODUCT_ID=prod_your_subscription_product_id_here
+   POLAR_PAY_PER_USE_PRODUCT_ID=prod_your_pay_per_use_product_id_here
    ```
 
 4. **Run the development server**
@@ -160,13 +162,13 @@ I love doom-scrolling Google Maps - clicking on random islands in the Pacific, e
 
    Navigate to [http://localhost:3000](http://localhost:3000)
 
-6. **Start exploring!**
+6. **Start exploring**
 
    - Click anywhere on the globe to research that location
    - Use the "Random Location" button to discover somewhere new
    - Watch the AI research unfold in real-time
 
-##  How to Use
+## How to Use
 
 ### Basic Usage
 
@@ -202,7 +204,7 @@ I love doom-scrolling Google Maps - clicking on random islands in the Pacific, e
 - **Reasoning View**: Click to see the detailed reasoning trace of the AI
 - **Dark Mode**: Automatically matches your system preferences
 
-##  Development Modes
+## Development Modes
 
 History has two operating modes to make development easy:
 
@@ -212,12 +214,12 @@ NEXT_PUBLIC_APP_MODE=development
 ```
 
 **Features:**
--  No Supabase required - uses local SQLite
--  No authentication needed - auto-login as dev user
--  Unlimited queries - no rate limits
--  No billing integration
--  Works completely offline (except API calls)
--  Perfect for contributing and testing
+- No Supabase required - uses local SQLite
+- No authentication needed - auto-login as dev user
+- Unlimited queries - no rate limits
+- No billing integration
+- Works completely offline (except API calls)
+- Perfect for contributing and testing
 
 ### Production Mode
 ```env
@@ -225,13 +227,36 @@ NEXT_PUBLIC_APP_MODE=production
 ```
 
 **Features:**
--  Full authentication with Supabase
--  Billing integration with Polar
--  Rate limiting based on user tiers
--  Cloud database storage
--  Analytics and tracking
+- Full authentication with Supabase
+- Billing integration with Polar
+- Rate limiting based on user tiers
+- Cloud database storage
+- Analytics and tracking
 
-##  Getting API Keys
+## Rate Limits & Billing
+
+### Anonymous Users
+- **1 query (lifetime)** - No account required
+- After first query, prompted to sign up
+
+### Free Users (Signed Up)
+- **3 queries per day** - Resets at midnight
+- Full access to research history
+- Save and share research
+
+### Subscription Plan ($20/month)
+- **100 queries per month** - Approximately $0.20 per query
+- 1 week free trial included
+- Priority support
+- Resets on the 1st of each month
+
+### Pay-Per-Use Plan
+- **$0.25 per query** - Unlimited usage
+- No monthly commitment
+- Only pay for what you use
+- Billed via Polar usage metering
+
+## Getting API Keys
 
 ### Valyu API (Required)
 
@@ -244,8 +269,8 @@ NEXT_PUBLIC_APP_MODE=production
 **Pricing:**
 - Free tier available for testing
 - Pay-as-you-go pricing for production
-- Lite model: ~$0.10 per research
-- Heavy model: ~$0.50 per research
+- Lite model: approximately $0.10 per research
+- Heavy model: approximately $0.50 per research
 
 ### Mapbox Access Token (Required)
 
@@ -258,42 +283,73 @@ NEXT_PUBLIC_APP_MODE=production
 - 50,000 free map loads per month
 - Additional usage billed per load (very affordable)
 
-##  Database Schema
+### Polar Setup (Optional - For Billing)
+
+1. Go to [polar.sh](https://polar.sh)
+2. Create an account
+3. Set up two products:
+   - **Subscription Product**: $20/month recurring
+   - **Pay-Per-Use Product**: Usage-based billing
+4. Create a meter for pay-per-use:
+   - Event name: `deep_research`
+   - Aggregation: `count`
+   - Pricing: $0.25 per unit
+5. Add product IDs and webhook secret to `.env.local`
+
+## Database Schema
 
 History uses a minimal database schema optimized for the DeepResearch API:
-
-### `research_tasks`
-```sql
-- id: UUID (primary key)
-- user_id: UUID (foreign key to users)
-- location_name: text
-- location_lat: float
-- location_lng: float
-- deepresearch_task_id: text (Valyu API task ID)
-- status: enum (queued, running, completed, error)
-- created_at: timestamp
-```
-
-**Note:** Full research content is stored in Valyu's DeepResearch API. We only store metadata and task IDs, keeping the database lean and avoiding duplication.
 
 ### `users`
 ```sql
 - id: UUID (primary key)
 - email: text
-- subscription_tier: enum (free, pay_per_use, unlimited)
+- avatar_url: text
+- subscription_tier: enum (free, pay_per_use, subscription)
+- subscription_status: enum (active, inactive)
+- polar_customer_id: text
+- subscription_id: text
 - created_at: timestamp
+- updated_at: timestamp
+```
+
+### `research_tasks`
+```sql
+- id: UUID (primary key)
+- user_id: UUID (foreign key to users)
+- deepresearch_id: text (Valyu API task ID)
+- location_name: text
+- location_lat: float
+- location_lng: float
+- location_images: jsonb
+- status: enum (queued, running, completed, failed)
+- anonymous_id: text
+- is_public: boolean
+- share_token: text
+- shared_at: timestamp
+- created_at: timestamp
+- updated_at: timestamp
+- completed_at: timestamp
 ```
 
 ### `user_rate_limits`
 ```sql
-- user_id: UUID (primary key)
-- query_count: integer
-- last_reset: timestamp
+- id: UUID (primary key)
+- user_id: UUID (foreign key to users)
+- usage_count: integer
+- reset_date: text
+- monthly_usage_count: integer
+- monthly_reset_date: text
+- last_request_at: timestamp
+- created_at: timestamp
+- updated_at: timestamp
 ```
 
-##  Contributing
+**Note:** Full research content is stored in Valyu's DeepResearch API. We only store metadata and task IDs, keeping the database lean and avoiding duplication.
 
-History is fully open-source! Contributions are welcome and appreciated.
+## Contributing
+
+History is fully open-source. Contributions are welcome and appreciated.
 
 ### How to Contribute
 
@@ -307,49 +363,48 @@ History is fully open-source! Contributions are welcome and appreciated.
 
 ### Areas for Contribution
 
--  Additional map styles and visualizations
--  Location bookmarking and collections
--  Image galleries for historical locations
--  Mobile app optimizations
--  Multi-language support
--  Data visualizations (timelines, charts)
--  Advanced search and filtering
--  Accessibility improvements
+- Additional map styles and visualizations
+- Location bookmarking and collections
+- Image galleries for historical locations
+- Mobile app optimizations
+- Multi-language support
+- Data visualizations (timelines, charts)
+- Advanced search and filtering
+- Accessibility improvements
 
-##  Known Issues & Limitations
+## Known Issues & Limitations
 
 - Mapbox free tier limited to 50k loads/month
 - DeepResearch API calls cost money (though very reasonable)
 - Globe performance may be slower on older devices
 - Some remote locations may have limited historical data
 
-##  License
+## License
 
 This project is open-source and available under the MIT License.
 
-##  Support & Questions
+## Support & Questions
 
 - **Issues**: [Open an issue](https://github.com/yourusername/history/issues) on GitHub
 - **Discussions**: [Join the discussion](https://github.com/yourusername/history/discussions)
-- **Email**: support@yourdomain.com
 
-##  Roadmap
+## Roadmap
 
-Future features I'd love to build:
+Future features under consideration:
 
-- [ ] Timeline visualization with historical events
-- [ ] Multiple locations comparison
-- [ ] Historical image galleries from archives
-- [ ] PDF export of research reports
-- [ ] Collaborative research sharing
-- [ ] Location bookmarks and collections
-- [ ] Advanced filters (time periods, topics, event types)
-- [ ] Mobile app versions (iOS, Android)
-- [ ] Offline mode with cached research
-- [ ] 3D historical recreations
-- [ ] AR view for mobile devices
+- Timeline visualization with historical events
+- Multiple locations comparison
+- Historical image galleries from archives
+- PDF export of research reports
+- Collaborative research sharing
+- Location bookmarks and collections
+- Advanced filters (time periods, topics, event types)
+- Mobile app versions (iOS, Android)
+- Offline mode with cached research
+- 3D historical recreations
+- AR view for mobile devices
 
-##  Inspiration & Acknowledgments
+## Inspiration & Acknowledgments
 
 This project was born from countless hours spent exploring Google Maps, clicking on random islands, mountains, and remote places, and wanting to know their stories. Special thanks to:
 
@@ -359,12 +414,8 @@ This project was born from countless hours spent exploring Google Maps, clicking
 - **[Polar](https://polar.sh)** - For developer-friendly billing
 - **The Geography Community** - For inspiring curiosity about our planet
 
-##  Star History
-
-If you find History useful, please consider giving it a star on GitHub! 
-
 ---
 
-**Built with  for geography enthusiasts, history buffs, and curious minds everywhere.**
+**Built for geography enthusiasts, history buffs, and curious minds everywhere.**
 
 *Explore. Discover. Learn.*
