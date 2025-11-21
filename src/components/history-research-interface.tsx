@@ -286,6 +286,11 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
     return undefined;
   }, [displayLocation]);
 
+  // Memoize empty callback for Globe to prevent re-initialization
+  const handleGlobeLocationClick = useCallback(() => {
+    // No-op for mini globe - user can't click to select new locations
+  }, []);
+
   const handleShare = async () => {
     if (!user || !taskId) return;
 
@@ -897,7 +902,7 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
               </div>
               <div className="flex-1 rounded-lg overflow-hidden border border-border/50 shadow-xl">
                 <Globe
-                  onLocationClick={() => {}}
+                  onLocationClick={handleGlobeLocationClick}
                   theme="satellite-streets-v12"
                   initialCenter={globeInitialCenter}
                   initialZoom={globeInitialCenter ? 4 : undefined}
@@ -1234,7 +1239,7 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
           <div className="h-full p-2">
             <div className="h-full rounded-lg overflow-hidden border border-border/50 shadow-xl">
               <Globe
-                onLocationClick={() => {}}
+                onLocationClick={handleGlobeLocationClick}
                 theme="satellite-streets-v12"
                 initialCenter={globeInitialCenter}
                 initialZoom={globeInitialCenter ? 3 : undefined}
