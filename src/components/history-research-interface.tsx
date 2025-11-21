@@ -392,23 +392,28 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
           }
         }
 
-        // Update messages array if provided - create new array reference to trigger re-render
+        // Update messages array if provided - only if length changed to avoid unnecessary re-renders
         if (statusData.messages && Array.isArray(statusData.messages) && statusData.messages.length > 0) {
-          setMessages([...statusData.messages]);
-          setMessagesVersion(v => v + 1);
+          setMessages(prevMessages => {
+            if (prevMessages.length !== statusData.messages.length) {
+              setMessagesVersion(v => v + 1);
+              return [...statusData.messages];
+            }
+            return prevMessages;
+          });
         }
 
-        // Update content/sources/images if provided during running state
+        // Update content/sources/images if provided during running state - only if changed
         if (statusData.output) {
-          setContent(statusData.output);
+          setContent(prev => prev === statusData.output ? prev : statusData.output);
         }
 
         if (statusData.sources && Array.isArray(statusData.sources) && statusData.sources.length > 0) {
-          setSources(statusData.sources);
+          setSources(prev => prev.length === statusData.sources.length ? prev : statusData.sources);
         }
 
         if (statusData.images && Array.isArray(statusData.images) && statusData.images.length > 0) {
-          setImages(statusData.images);
+          setImages(prev => prev.length === statusData.images.length ? prev : statusData.images);
         }
 
         return { completed: false };
@@ -444,20 +449,25 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
 
         // Update all state in batch before changing status
         if (extractedContent) {
-          setContent(extractedContent);
+          setContent(extractedContent); // Always set on completion
         }
 
         if (statusData.messages && Array.isArray(statusData.messages) && statusData.messages.length > 0) {
-          setMessages([...statusData.messages]);
-          setMessagesVersion(v => v + 1);
+          setMessages(prevMessages => {
+            if (prevMessages.length !== statusData.messages.length) {
+              setMessagesVersion(v => v + 1);
+              return [...statusData.messages];
+            }
+            return prevMessages;
+          });
         }
 
         if (statusData.sources && Array.isArray(statusData.sources) && statusData.sources.length > 0) {
-          setSources(statusData.sources);
+          setSources(prev => prev.length === statusData.sources.length ? prev : statusData.sources);
         }
 
         if (statusData.images && Array.isArray(statusData.images) && statusData.images.length > 0) {
-          setImages(statusData.images);
+          setImages(prev => prev.length === statusData.images.length ? prev : statusData.images);
         }
 
         // Set status to completed LAST, after all content is ready
@@ -891,8 +901,8 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
 
       {/* Content */}
       <div className="flex-1 mt-14 sm:mt-16 overflow-hidden">
-        <ScrollArea className="h-full">
-          <div className="max-w-4xl mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6 overflow-x-hidden">
+        <ScrollArea className="h-full will-change-scroll">
+          <div className="max-w-4xl mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6 overflow-x-hidden transform-gpu">
             {/* Status */}
             {status === 'queued' && (
               <div className="flex items-center justify-center py-12">
