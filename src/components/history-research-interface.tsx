@@ -471,6 +471,8 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
         }
 
         // Set status to completed LAST, after all content is ready
+        // Force re-render by updating messagesVersion even if messages didn't change
+        setMessagesVersion(v => v + 1);
         setStatus('completed');
         return { completed: true };
       } else if (statusData.status === 'failed') {
