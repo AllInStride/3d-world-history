@@ -960,8 +960,8 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
                   </div>
                 )}
 
-                {/* Activity Feed - Show only during running */}
-                {timeline.length > 0 && status === 'running' && (
+                {/* Activity Feed - Show only during running AND not completed */}
+                {timeline.length > 0 && status === 'running' && !content && (
                   <div className="space-y-3 sm:space-y-4" key={`timeline-${messages.length}-${timeline.length}`}>
                     <div className="text-[10px] sm:text-xs font-light text-muted-foreground/60 uppercase tracking-wider">
                       Research Trace
