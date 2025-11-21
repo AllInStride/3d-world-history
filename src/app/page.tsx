@@ -82,20 +82,14 @@ function HomeContent() {
     console.log('Location clicked:', location);
     track('location_clicked', { location: location.name });
 
-    // Check if user is signed in - BLOCK with signup prompt
-    if (!user) {
-      setPendingLocation({ ...location, taskId });
-      setShowSignupPrompt(true);
-      return;
-    }
-
-    // Check rate limit for signed-in users
-    if (!allowed) {
+    // For signed-in users, check rate limit
+    if (user && !allowed) {
       handleRateLimitError(resetTime?.toISOString() || new Date().toISOString());
       return;
     }
 
     // Show confirmation dialog if this is a new research (no taskId)
+    // Anonymous users are allowed to click and see the dialog
     if (!taskId) {
       setConfirmLocation(location);
       setShowConfirmDialog(true);
