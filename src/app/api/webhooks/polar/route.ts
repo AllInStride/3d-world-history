@@ -63,17 +63,18 @@ export async function POST(req: Request) {
     if (event.type === 'customer.state_changed' && event.data.externalId) {
       const { externalId, subscriptions, id: customerId } = event.data;
       
-      // Find active subscription
-      const activeSubscription = subscriptions?.find((s: any) => s.status === 'active');
-      
+      // Find active subscription (includes trialing status)
+      const activeStatuses = ['active', 'trialing'];
+      const activeSubscription = subscriptions?.find((s: any) => activeStatuses.includes(s.status));
+
       let tier = 'free';
       let status = 'inactive';
       let subscriptionId = null;
-      
+
       if (activeSubscription) {
         // Determine tier from product ID
         if (activeSubscription.productId === process.env.POLAR_SUBSCRIPTION_PRODUCT_ID) {
-          tier = 'subscription'; // $20/month for 100 queries
+          tier = 'unlimited'; // $20/month for 100 queries
         } else if (activeSubscription.productId === process.env.POLAR_PAY_PER_USE_PRODUCT_ID) {
           tier = 'pay_per_use'; // $0.25 per deep research run
         } else {
@@ -103,7 +104,7 @@ export async function POST(req: Request) {
     }
 
     // Handle legacy events during migration
-    if (event.type === 'subscription.created' || event.type === 'subscription.updated') {
+    if (event.type === 'subscription.created' || event.type === 'subscription.updated' || event.type === 'subscription.active') {
       const subscription = event.data;
       
       console.log(`[Webhook] Processing ${event.type}:`);
@@ -132,8 +133,11 @@ export async function POST(req: Request) {
           canceledAt: subscription.canceledAt
         });
         
-        // Check if subscription is cancelled (either inactive or scheduled for cancellation)
-        const isCancelled = subscription.status !== 'active' || subscription.cancelAtPeriodEnd === true;
+        // Check if subscription is cancelled
+        // Active statuses: 'active', 'trialing'
+        // Inactive statuses: 'canceled', 'incomplete', 'incomplete_expired', 'past_due', 'unpaid'
+        const activeStatuses = ['active', 'trialing'];
+        const isCancelled = !activeStatuses.includes(subscription.status) || subscription.cancelAtPeriodEnd === true;
         
         if (isCancelled) {
           console.log(`[Webhook] Subscription cancelled, setting user to free tier`);
@@ -157,7 +161,7 @@ export async function POST(req: Request) {
           // Active subscription - determine tier from product ID
           let tier = 'pay_per_use'; // Default
           if (productId === process.env.POLAR_SUBSCRIPTION_PRODUCT_ID) {
-            tier = 'subscription'; // $20/month for 100 queries
+            tier = 'unlimited'; // $20/month for 100 queries
           } else if (productId === process.env.POLAR_PAY_PER_USE_PRODUCT_ID) {
             tier = 'pay_per_use'; // $0.25 per deep research run
           }
