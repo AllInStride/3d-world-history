@@ -157,19 +157,15 @@ export async function POST(req: Request) {
     // Use the user's message content (which includes custom instructions or preset prompts)
     let researchQuery = typeof lastMessage.content === 'string' ? lastMessage.content : '';
 
-    // Only add default comprehensive prompt if no custom instructions were provided
-    // (If location is provided but message looks like a simple location name, use default prompt)
-    if (location && researchQuery.length < 100) {
-      researchQuery = `Provide a comprehensive historical analysis of ${location.name}. Include:
-- Major historical events and periods
-- Key historical figures and their contributions
-- Cultural and architectural heritage
-- Economic and political development through history
-- Social and demographic changes over time
-- Important archaeological findings or historical sites
-- Timeline of significant dates and events
+    // Only use default prompt if the message is ONLY the location name (no custom instructions)
+    // Check if the message just contains the location name (e.g., "Research the history of Russia")
+    const isDefaultMessage = location && (
+      researchQuery === `Research the history of ${location.name}` ||
+      researchQuery === location.name
+    );
 
-Please be thorough and well-researched, citing historical sources where possible.`;
+    if (isDefaultMessage) {
+      researchQuery = `Provide a comprehensive historical overview of this location, covering major events, cultural significance, and key developments throughout history.\n\nLocation: ${location.name}`;
     }
 
     // Get user tier for model selection
