@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, Loader2, MapPin, ExternalLink, FileText, Lightbulb, CornerDownRight, Globe2, CheckCircle2, Brain, Clock, Sparkles, Share2, Check, Copy, Compass } from 'lucide-react';
+import { X, Loader2, MapPin, ExternalLink, FileText, Lightbulb, CornerDownRight, Globe2, CheckCircle2, Brain, Clock, Sparkles, Share2, Check, Copy, Compass, Download } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PhotoGallery } from '@/components/ui/gallery';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -270,6 +270,7 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
   const [copied, setCopied] = useState(false);
   const [heroImages, setHeroImages] = useState<string[]>(initialImages || []);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   // Memoize Globe props to prevent unnecessary re-renders
   const globeInitialCenter = useMemo<[number, number] | undefined>(() => {
@@ -334,6 +335,45 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!taskId || !displayLocation) return;
+
+    setDownloadingPdf(true);
+    try {
+      const response = await fetch('/api/reports/generate-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          taskId: taskId,
+          locationName: displayLocation.name,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF');
+      }
+
+      // Get the PDF blob
+      const blob = await response.blob();
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `history-${displayLocation.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      // Silent fail - user will see button go back to normal state
+    } finally {
+      setDownloadingPdf(false);
     }
   };
 
@@ -935,6 +975,22 @@ export function HistoryResearchInterface({ location, onClose, onTaskCreated, ini
           </div>
         </div>
         <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+          {status === 'completed' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDownloadPdf}
+              disabled={downloadingPdf}
+              className="gap-1.5 sm:gap-2 min-h-11 px-2 sm:px-3"
+            >
+              {downloadingPdf ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4" />
+              )}
+              <span className="hidden sm:inline">PDF</span>
+            </Button>
+          )}
           {user && status === 'completed' && (
             <Button
               variant="ghost"
