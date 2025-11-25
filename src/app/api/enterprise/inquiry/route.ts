@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { EnterpriseInquiryEmail } from '@/lib/email-templates/enterprise-inquiry';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 const ENTERPRISE_RECIPIENTS = [
   'harvey@valyu.ai',
@@ -55,14 +55,18 @@ export async function POST(req: NextRequest) {
       bookedCall: bookedCall || false
     });
 
-    // Send email to Valyu team
-    await resend.emails.send({
-      from: 'History Enterprise <support@valyu.ai>',
-      to: ENTERPRISE_RECIPIENTS,
-      replyTo: contactEmail,
-      subject: `🏢 Enterprise Inquiry from History - ${companyName}`,
-      html: emailHtml
-    });
+    // Send email to Valyu team (only if Resend is configured)
+    if (resend) {
+      await resend.emails.send({
+        from: 'History Enterprise <support@valyu.ai>',
+        to: ENTERPRISE_RECIPIENTS,
+        replyTo: contactEmail,
+        subject: `🏢 Enterprise Inquiry from History - ${companyName}`,
+        html: emailHtml
+      });
+    } else {
+      console.log('[Enterprise Inquiry] Resend not configured, skipping email');
+    }
 
     // Track event in PostHog if available
     if (typeof window !== 'undefined' && (window as any).posthog) {
