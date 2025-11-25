@@ -306,7 +306,8 @@ export const Globe = forwardRef<GlobeRef, GlobeProps>(function Globe({ onLocatio
       });
 
     } catch (err) {
-      setError('Failed to initialize map');
+      console.error('Map initialization error:', err);
+      setError(`Failed to initialize map: ${err instanceof Error ? err.message : String(err)}`);
       setIsLoading(false);
     }
 
